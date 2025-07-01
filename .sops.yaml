@@ -1,0 +1,5 @@
+creation_rules:
+  - kms: projects/${GCP_PROJECT_ID}/locations/global/keyRings/secret_key/cryptoKeys/secret_key
+    encrypted_regex: '^(data|stringData)$'
+    path_regex: '.*\.yaml$'
+
