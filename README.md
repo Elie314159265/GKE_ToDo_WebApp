@@ -22,7 +22,60 @@ Ingressによるルーティング、StatefulSetによるデータベースの�
 
 ## 構成図
 
+graph TD
+    subgraph "インターネット"
+        User[👨‍💻 ユーザー / ブラウザ]
+    end
 
+    subgraph "Google Kubernetes Engine (GKE) クラスタ"
+        Ingress[🌐 Ingress<br>(外部IP: 34.xx.xx.xx)]
+
+        subgraph "フロントエンド"
+            FrontendService[Service<br>frontend-service]
+            FrontendPod1(Pod: React/Nginx)
+            FrontendPod2(Pod: React/Nginx)
+        end
+
+        subgraph "バックエンド"
+            BackendService[Service<br>nodejs-service]
+            BackendPod1(Pod: Node.js/Express)
+            BackendPod2(Pod: Node.js/Express)
+        end
+
+        subgraph "データベース"
+            DBService[Service<br>postgres]
+            DBPod[StatefulSet<br>Pod: PostgreSQL]
+            PV[(💾 永続ディスク<br>Persistent Volume)]
+        end
+    end
+
+    %% フローの定義
+    User -- "HTTPリクエスト<br>(例: /)" --> Ingress
+    User -- "HTTPリクエスト<br>(例: /api/todos)" --> Ingress
+
+    Ingress -- "パス: /<br>(UIの表示)" --> FrontendService
+    Ingress -- "パス: /api/*<br>(API呼び出し)" --> BackendService
+
+    FrontendService --> FrontendPod1
+    FrontendService --> FrontendPod2
+
+    BackendService --> BackendPod1
+    BackendService --> BackendPod2
+
+    %% フロントエンドからバックエンドへのAPIコールはIngressを経由する
+    FrontendPod1 -.-> Ingress
+    FrontendPod2 -.-> Ingress
+
+    BackendPod1 -- "DBクエリ" --> DBService
+    BackendPod2 -- "DBクエリ" --> DBService
+    
+    DBService --> DBPod
+    DBPod -- "データの読み書き" --> PV
+
+    %% スタイル定義
+    style User fill:#d4edff,stroke:#333,stroke-width:2px
+    style Ingress fill:#c3e6cb,stroke:#333,stroke-width:2px
+    style PV fill:#f8d7da,stroke:#333,stroke-width:2px
 
 ## 📁 ディレクトリ構成
 
