@@ -1,0 +1,33 @@
+stages:
+  - deploy
+
+variables:       # ここはGitLab CIの変数で設定推奨
+  REGISTRY_HOST: "your-name" #your-nameをDocker Registoryの名前に置き換えてください
+  DEFAULT_CI_IMAGE: "your-name/kubernetes:0.1" #your-nameをDocker Registoryの名前に置き換えてください
+  GCP_KMS_KEY: projects/${GCP_PROJECT_ID}/locations/global/keyRings/secret_key/cryptoKeys/secret_key
+
+before_script:
+  # サービスアカウントキーで認証
+  - echo "$GCP_KEY" > ${CI_PROJECT_DIR}/gcp-key.json
+  - export GOOGLE_APPLICATION_CREDENTIALS="${CI_PROJECT_DIR}/gcp-key.json"
+  - echo ${GOOGLE_APPLICATION_CREDENTIALS}
+  - ls -lR
+  - gcloud auth activate-service-account --key-file=${CI_PROJECT_DIR}/gcp-key.json
+  - gcloud config set project ${GCP_PROJECT_ID}
+  # GKE クラスタ認証情報取得
+  - gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${CLUSTER_ZONE}
+  #- cp "$KUBECONFIG_DATA" ~/.kube/config
+  - export KUBECONFIG=~/.kube/config
+  - curl -LO https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.linux.amd64
+  - chmod +x sops-v3.10.2.linux.amd64
+  - mv sops-v3.10.2.linux.amd64 ./sops
+  - ./sops -d k8s/postgres-secret.enc.yaml > k8s/postgres-secret.yaml
+deploy:
+  stage: deploy  
+  script:
+    #- kubectl apply -f k8s/
+    - find k8s -type f ! -name "*.enc.yaml" -exec kubectl apply -f {} \;
+    - kubectl get all
+default:
+  image: $DEFAULT_CI_IMAGE
+  timeout: 90m
