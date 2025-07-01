@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+
+      initContainers:
+        - name: init-sql-loader
+          image: busybox
+          command: [sh, -c, 'cp /init.sql /docker-entrypoint-initdb.d/init.sql']
+          volumeMounts:
+            - name: init-sql-config
+              mountPath: /init.sql
+              subPath: init.sql
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+
+      volumes:
+        - name: init-sql
+          emptyDir: {}
+        - name: init-sql-config
+          configMap:
+            name: postgres-init-sql
+
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 5Gi
+

@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todo-app-ingress
+spec:
+  # GKE Ingressを利用する場合、デフォルトのIngressClassが使われる
+  # annotations:
+  #   kubernetes.io/ingress.class: gce # GKEの場合、通常は不要
+  rules:
+    - http:
+        paths:
+          # パスが /api/ で始まるリクエストは、バックエンド (nodejs-service) へ
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                # 注意: バックエンドのService名を指定
+                name: nodejs-service
+                port:
+                  number: 80 # nodejs-serviceが公開しているポート
+          # それ以外のリクエスト (/) は、すべてフロントエンド (frontend-service) へ
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80 # frontend-serviceが公開しているポート

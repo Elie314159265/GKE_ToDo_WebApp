@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app
+  labels:
+    app: nodejs-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nodejs-app
+  template:
+    metadata:
+      labels:
+        app: nodejs-app
+    spec:
+      containers:
+        - name: nodejs
+          image: elie3141/todo-app:1.0.1 #<your-image-name>  # 例: registry.gitlab.com/elie/k8s-todo-app:latest
+          ports:
+            - containerPort: 3000
+              # 以下を追記
+          # 以下を追記
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m" # 0.1 vCPU
+            limits:
+              memory: "256Mi"
+              cpu: "250m" # 0.25 vCPU
+          readinessProbe:
+            httpGet:
+              path: /api/todos # アプリケーションがDBに接続できるか確認できるエンドポイントが良い
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/todos
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+
