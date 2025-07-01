@@ -22,13 +22,14 @@ Ingressによるルーティング、StatefulSetによるデータベースの�
 
 ## 構成図
 
+```mermaid
 graph TD
     subgraph "インターネット"
         User[👨‍💻 ユーザー / ブラウザ]
     end
 
     subgraph "Google Kubernetes Engine (GKE) クラスタ"
-        Ingress[🌐 Ingress<br>(外部IP: 34.xx.xx.xx)]
+        Ingress["🌐 Ingress<br>(外部IPアドレス)"]
 
         subgraph "フロントエンド"
             FrontendService[Service<br>frontend-service]
@@ -45,16 +46,15 @@ graph TD
         subgraph "データベース"
             DBService[Service<br>postgres]
             DBPod[StatefulSet<br>Pod: PostgreSQL]
-            PV[(💾 永続ディスク<br>Persistent Volume)]
+            PV[("💾 永続ディスク<br>Persistent Volume")]
         end
     end
 
     %% フローの定義
-    User -- "HTTPリクエスト<br>(例: /)" --> Ingress
-    User -- "HTTPリクエスト<br>(例: /api/todos)" --> Ingress
+    User -- "HTTPリクエスト (UI表示 / APIコール)" --> Ingress
 
-    Ingress -- "パス: /<br>(UIの表示)" --> FrontendService
-    Ingress -- "パス: /api/*<br>(API呼び出し)" --> BackendService
+    Ingress -- "パス: / (UI)" --> FrontendService
+    Ingress -- "パス: /api/* (API)" --> BackendService
 
     FrontendService --> FrontendPod1
     FrontendService --> FrontendPod2
@@ -62,20 +62,14 @@ graph TD
     BackendService --> BackendPod1
     BackendService --> BackendPod2
 
-    %% フロントエンドからバックエンドへのAPIコールはIngressを経由する
+    %% フロントエンドからバックエンドへのAPIコールは再度Ingressを経由する
     FrontendPod1 -.-> Ingress
-    FrontendPod2 -.-> Ingress
 
     BackendPod1 -- "DBクエリ" --> DBService
-    BackendPod2 -- "DBクエリ" --> DBService
     
     DBService --> DBPod
     DBPod -- "データの読み書き" --> PV
-
-    %% スタイル定義
-    style User fill:#d4edff,stroke:#333,stroke-width:2px
-    style Ingress fill:#c3e6cb,stroke:#333,stroke-width:2px
-    style PV fill:#f8d7da,stroke:#333,stroke-width:2px
+```
 
 ## 📁 ディレクトリ構成
 
@@ -161,9 +155,6 @@ kubectl get ingress
 
 表示された`ADDRESS`をブラウザで開くと、アプリケーションにアクセスできます。
 
-## 補足
-
-このプロジェクトは、Geminiを用いて問題を解決しながら構築されました。
 
 ## 📝 ライセンス
 
