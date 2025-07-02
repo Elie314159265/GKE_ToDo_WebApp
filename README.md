@@ -1,8 +1,10 @@
 # GKEで動かすToDoアプリケーション
 
-これは、React (Vite), Node.js (Express), PostgreSQLで構築したToDoアプリケーションを、Dockerでコンテナ化し、Google Kubernetes Engine (GKE) 上にデプロイするサンプルプロジェクトです。
+これは、React (Vite), Node.js (Express), PostgreSQLで構築したToDoアプリケーションを、Dockerでコンテナ化し、Google Kubernetes Engine (GKE) 上にデプロイするサンプルプロジェクトです
 
-Ingressによるルーティング、StatefulSetによるデータベースの永続化、そしてGKE Ingressのヘルスチェック設定など、クラウドネイティブなアプリケーションを構築する上で重要な技術を含んでいます。
+ToDoアプリケーションでは不要と思いますが...高可用性・スケーラビリティ・セキュアな機密情報運用を実現しました。
+
+Ingressによるルーティング、StatefulSetによるデータベースの永続化、そしてGKE Ingressのヘルスチェック設定など、クラウドネイティブなアプリケーションを構築する上で重要な技術を含んでます
 
 ## 表示画面
 ![image](https://github.com/user-attachments/assets/3da6d802-0e9e-4789-b602-cfd3124bb3c8)
